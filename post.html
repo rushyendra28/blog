@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900" x-data="{ darkMode: false }">
+    <nav class="bg-white dark:bg-gray-800 shadow-lg">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <a href="/" class="text-xl font-bold text-gray-800 dark:text-white">My Blog</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button @click="darkMode = !darkMode" 
+                            class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
+                        <span x-show="!darkMode">🌙</span>
+                        <span x-show="darkMode">☀️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto mt-8 px-4">
+        <div id="post" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+            <!-- Post content will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <script>
+        // Initialize Supabase client
+        const supabase = supabase.createClient(
+            'https://eomhlompjovjtiwwdgbo.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvbWhsb21wam92anRpd3dkZ2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3NDU2ODcsImV4cCI6MjA1OTMyMTY4N30.gbEe3-o07SDoBC0IJowFRDxXXc0PLk7avEykYo5AYyQ'
+        );
+
+        // Get post ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        async function loadPost() {
+            if (!postId) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                const { data: post, error } = await supabase
+                    .from('posts')
+                    .select('*')
+                    .eq('id', postId)
+                    .single();
+
+                if (error) throw error;
+
+                document.title = `${post.title} - My Blog`;
+                
+                const postElement = document.getElementById('post');
+                postElement.innerHTML = `
+                    <h1 class="text-3xl font-bold mb-4 dark:text-white">${post.title}</h1>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                        <span>${new Date(post.created_at).toLocaleDateString()}</span>
+                        <span class="mx-2">|</span>
+                        <span>${post.category}</span>
+                    </div>
+                    <div class="prose dark:prose-invert max-w-none mb-6">
+                        ${post.content}
+                    </div>
+                    <div class="mb-8 space-x-2">
+                        ${post.tags.map(tag => 
+                            `<span class="inline-block bg-gray-200 dark:bg-gray-700 rounded-full px-3 py-1 text-sm">
+                                ${tag}
+                            </span>`
+                        ).join('')}
+                    </div>
+                    <div class="comment-section">
+                        <h3 class="text-xl font-semibold mb-4 dark:text-white">Comments</h3>
+                        <div id="comments" class="space-y-4 mb-6"></div>
+                        <form onsubmit="addComment(event)" class="space-y-4">
+                            <input type="text" 
+                                   placeholder="Your name" 
+                                   required 
+                                   class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                            <textarea placeholder="Your comment" 
+                                      required 
+                                      class="w-full p-2 border rounded h-32 dark:bg-gray-700 dark:border-gray-600"></textarea>
+                            <button type="submit" 
+                                    class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                                Add Comment
+                            </button>
+                        </form>
+                    </div>
+                `;
+
+                loadComments();
+            } catch (error) {
+                console.error('Error loading post:', error.message);
+                postElement.innerHTML = '<p class="text-red-500">Error loading post. Please try again later.</p>';
+            }
+        }
+
+        async function loadComments() {
+            try {
+                const { data: comments, error } = await supabase
+                    .from('comments')
+                    .select('*')
+                    .eq('post_id', postId)
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                const commentsContainer = document.getElementById('comments');
+                commentsContainer.innerHTML = comments.map(comment => `
+                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded">
+                        <div class="font-semibold dark:text-white">${comment.name}</div>
+                        <div class="text-gray-600 dark:text-gray-300 mt-2">${comment.content}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            ${new Date(comment.created_at).toLocaleDateString()}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading comments:', error.message);
+            }
+        }
+
+        async function addComment(event) {
+            event.preventDefault();
+            const form = event.target;
+            const name = form.querySelector('input').value;
+            const content = form.querySelector('textarea').value;
+
+            try {
+                const { error } = await supabase
+                    .from('comments')
+                    .insert([
+                        { post_id: postId, name, content }
+                    ]);
+
+                if (error) throw error;
+
+                form.reset();
+                loadComments();
+            } catch (error) {
+                console.error('Error adding comment:', error.message);
+                alert('Failed to add comment. Please try again.');
+            }
+        }
+
+        // Initialize
+        loadPost();
+
+        // Dark mode toggle
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('darkMode', () => ({
+                dark: false,
+                toggle() {
+                    this.dark = !this.dark;
+                    document.documentElement.classList.toggle('dark', this.dark);
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

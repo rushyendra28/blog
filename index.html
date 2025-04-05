@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900" x-data="{ darkMode: false }">
+    <nav class="bg-white dark:bg-gray-800 shadow-lg">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <a href="/" class="text-xl font-bold text-gray-800 dark:text-white">My Blog</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button @click="darkMode = !darkMode" 
+                            class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
+                        <span x-show="!darkMode">🌙</span>
+                        <span x-show="darkMode">☀️</span>
+                    </button>
+                    <div id="authButtons">
+                        <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto mt-8 px-4">
+        <!-- Blog posts container -->
+        <div id="posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Posts will be dynamically inserted here -->
+        </div>
+
+        <!-- Admin Panel (hidden by default) -->
+        <div id="adminPanel" class="hidden mt-8">
+            <h2 class="text-2xl font-bold mb-4 dark:text-white">Admin Panel</h2>
+            <form id="newPostForm" class="space-y-4">
+                <input type="text" id="postTitle" placeholder="Post Title" class="w-full p-2 border rounded">
+                <input type="text" id="postCategory" placeholder="Category" class="w-full p-2 border rounded">
+                <input type="text" id="postTags" placeholder="Tags (comma separated)" class="w-full p-2 border rounded">
+                <textarea id="postContent" placeholder="Post Content" class="w-full p-2 border rounded h-32"></textarea>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Create Post</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
