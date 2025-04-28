@@ -1,7 +1,5 @@
 // Initialize Supabase client
 const supabase = supabase.createClient(
-    'https://eomhlompjovjtiwwdgbo.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvbWhsb21wam92anRpd3dkZ2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3NDU2ODcsImV4cCI6MjA1OTMyMTY4N30.gbEe3-o07SDoBC0IJowFRDxXXc0PLk7avEykYo5AYyQ'
 );
 
 // DOM Elements
